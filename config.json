@@ -1,0 +1,9 @@
+{
+  "confidence": 0.7,
+  "interval": 0.5,
+  "click_enabled": false,
+  "click_cooldown": 2.0,
+  "model_path": "C:\\资料\\学校\\数字媒体导论\\ad-popup-closer\\models\\close_button.pt",
+  "two_stage": true,
+  "collect_data": false
+}

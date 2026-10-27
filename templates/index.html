@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>弹窗关闭助手</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <h1>弹窗关闭助手</h1>
+      <span class="tagline">Pop-up Closer · v0.1</span>
+    </div>
+    <div class="status-pill" id="statusPill" data-state="stopped">
+      <span class="pulse"></span><span id="statusText">已停止</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 预览区 -->
+    <section class="preview-card">
+      <div class="card-head">
+        <span>实时预览</span>
+        <span class="meta" id="frameMeta">—</span>
+      </div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <img id="preview" alt="预览" />
+      </div>
+    </section>
+
+    <!-- 控制区 -->
+    <aside class="control-card">
+      <div class="card-head"><span>控制</span></div>
+
+      <div class="row">
+        <button class="btn primary big" id="btnStart">开始检测</button>
+      </div>
+
+      <button class="btn secondary" id="btnPopup">弹出测试用广告弹窗</button>
+
+      <div class="switch-row">
+        <span class="switch-label">自动点击关闭按钮</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleClick" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <span class="switch-label">两阶段过滤（仅在广告区域内点击）</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleTwoStage" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <span class="switch-label">采集训练数据（识别到广告自动截图）</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleCollect" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>置信度阈值</span><b id="confVal">0.70</b></div>
+        <input type="range" id="rangeConf" min="0.3" max="0.95" step="0.01" value="0.70" />
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>检测间隔</span><b id="intVal">0.5 s</b></div>
+        <input type="range" id="rangeInt" min="0.1" max="2.0" step="0.1" value="0.5" />
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>点击冷却</span><b id="coolVal">2.0 s</b></div>
+        <input type="range" id="rangeCool" min="0.5" max="5.0" step="0.1" value="2.0" />
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>检测器状态</span></div>
+        <div class="chips" id="chips">
+          <span class="chip muted">YOLO: 未加载</span>
+          <span class="chip muted" id="tplChip">模板: 0</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>模板库</span></div>
+        <ul class="tpl-list" id="tplList"><li class="empty">暂无模板</li></ul>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b id="statDetected">0</b><span>检测</span></div>
+        <div class="stat"><b id="statClicked">0</b><span>点击</span></div>
+        <div class="stat"><b id="statAd">0</b><span>广告</span></div>
+        <div class="stat"><b id="statCollected">0</b><span>采集</span></div>
+        <div class="stat"><b id="statFps">0</b><span>FPS</span></div>
+      </div>
+    </aside>
+  </main>
+
+  <section class="log-card">
+    <div class="card-head"><span>日志</span></div>
+    <pre id="log"></pre>
+  </section>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

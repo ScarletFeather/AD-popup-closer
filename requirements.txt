@@ -1,0 +1,14 @@
+# 核心依赖（必装）
+flask
+opencv-python
+numpy
+mss
+pyautogui
+pillow
+
+# OCR 文字识别（识别「广告」「跳过」「关闭」等文案）
+rapidocr_onnxruntime
+
+# YOLO 检测（可选，体积较大，需要 torch）
+# 如需使用 YOLO 模型，取消下面这行注释后安装：
+# ultralytics
