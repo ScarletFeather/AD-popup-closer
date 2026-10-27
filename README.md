@@ -1,0 +1,2 @@
+# AD-popup-closer
+
