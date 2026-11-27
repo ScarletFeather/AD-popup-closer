@@ -42,6 +42,7 @@ state = {
 }
 _lock = threading.Lock()
 _thread = None
+_stop_event = None
 _capture = ScreenCapture(DEFAULTS["monitor"])
 _detector = Detector(state["config"])
 _last_click = {}  # (cx // 20, cy // 20) -> time
@@ -238,12 +239,10 @@ def _collect_samples(frame, dets, badges, cfg):
         add_log(f"采集训练样本 {base}.png（标注 {len(lines)} 个目标）")
 
 
-def detection_loop():
+def detection_loop(stop_event):
     add_log("检测已启动")
-    while True:
+    while not stop_event.is_set():
         with _lock:
-            if not state["running"]:
-                break
             cfg = dict(state["config"])
         t0 = time.time()
         try:
@@ -255,11 +254,9 @@ def detection_loop():
             # 两阶段过滤：先定位广告区域，仅在该区域内点击
             regions = _ad_regions(badges, cfg) if cfg.get("two_stage") else []
 
-            def valid(d, fallback=True):
+            def valid(d):
                 if not cfg.get("two_stage"):
                     return True
-                if not regions:
-                    return fallback
                 return _in_regions(d["x"] + d["w"] // 2, d["y"] + d["h"] // 2, regions)
 
             targets = [d for d in clickable if valid(d)]
@@ -275,6 +272,8 @@ def detection_loop():
 
             if cfg.get("click_enabled"):
                 for d in targets:
+                    if stop_event.is_set():
+                        break
                     _do_click(d, cfg)
 
             dt = time.time() - t0
@@ -282,7 +281,7 @@ def detection_loop():
                 state["stats"]["fps"] = round(1.0 / max(dt, 1e-3), 1)
         except Exception as e:
             add_log(f"检测异常: {e}")
-        time.sleep(max(0.0, cfg.get("interval", 0.5) - (time.time() - t0)))
+        stop_event.wait(max(0.0, cfg.get("interval", 0.5) - (time.time() - t0)))
     add_log("检测已停止")
 
 
@@ -327,20 +326,28 @@ def api_status():
 
 @app.route("/api/start", methods=["POST"])
 def api_start():
-    global _thread
+    global _thread, _stop_event
     with _lock:
-        if state["running"]:
+        if _thread is not None and _thread.is_alive():
+            if _stop_event.is_set():
+                return jsonify({"ok": False, "msg": "检测正在停止，请稍后重试"}), 409
             return jsonify({"ok": True, "msg": "already running"})
+        _stop_event = threading.Event()
+        _thread = threading.Thread(target=detection_loop, args=(_stop_event,), daemon=True)
+        _thread.start()
         state["running"] = True
-    _thread = threading.Thread(target=detection_loop, daemon=True)
-    _thread.start()
     return jsonify({"ok": True})
 
 
 @app.route("/api/stop", methods=["POST"])
 def api_stop():
     with _lock:
+        if _stop_event is not None:
+            _stop_event.set()
+        worker = _thread
         state["running"] = False
+    if worker is not None:
+        worker.join(timeout=0.5)
     return jsonify({"ok": True})
 
 

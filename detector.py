@@ -236,7 +236,7 @@ class Detector:
         if not dets:
             return []
         boxes = np.array(
-            [[d["x"], d["y"], d["x"] + d["w"], d["y"] + d["h"]] for d in dets],
+            [[d["x"], d["y"], d["w"], d["h"]] for d in dets],
             dtype=np.float32,
         )
         scores = np.array([d["confidence"] for d in dets], dtype=np.float32)
